@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('./userDb');
+const Post = require('../posts/postDb');
 const router = express.Router();
 
 router.post('/', validateUser, (req, res) => {
@@ -14,8 +15,16 @@ router.post('/', validateUser, (req, res) => {
         })
 });
 
-router.post('/:id/posts', (req, res) => {
-
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+    const post = req.body;
+    Post.insert({ user_id, text })
+        .then(post => {
+            res.status(201).json(post);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ error: "Could not add post" })
+        })
 });
 
 router.get('/', (req, res) => {
@@ -117,7 +126,17 @@ function validateUser(req, res, next) {
 };
 
 function validatePost(req, res, next) {
+    const { id: user_id } = req.params;
+    const { text } = req.body;
 
+    if(!req.body) {
+        return res.status(400).json({ message: "Post must have a body"})
+    }
+    if (!text) {
+        return res.status(400).json({ message: "Post must be text"})
+    }
+    req.body = { user_id, text };
+    next();
 };
 
 module.exports = router;
