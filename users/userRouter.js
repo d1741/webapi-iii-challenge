@@ -2,8 +2,16 @@ const express = require('express');
 const User = require('./userDb');
 const router = express.Router();
 
-router.post('/', (req, res) => {
-
+router.post('/', validateUser, (req, res) => {
+    const user = req.body;
+    User.insert(user)
+        .then(user => {
+            res.status(201).json(user);
+        })
+        .catch( err => {
+            console.log(err + "Check your post '/' request")
+            res.status(500).json({ error: "Error inserting user" })
+        })
 });
 
 router.post('/:id/posts', (req, res) => {
@@ -97,7 +105,15 @@ function validateUserId(req, res, next) {
 };
 
 function validateUser(req, res, next) {
-
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ error: "Name Please"})
+    }
+    if (typeof name != "string") {
+        return res.status(400).json({ error: "Name needs to be a string"})
+    }
+    req.body = { name }
+    next();
 };
 
 function validatePost(req, res, next) {
